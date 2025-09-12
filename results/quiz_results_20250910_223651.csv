@@ -1,0 +1,6 @@
+question_number,question,question_type,user_answer,correct_answer,is_correct,options
+1,What is the formula for the variance of a sample in statistics?,MCQ,n * (x - x̄)^2,(n-1) * (x - x̄)^2,False,"['n * (x - μ)^2', 'n * (x - x̄)^2', '(n-1) * (x - μ)^2', '(n-1) * (x - x̄)^2']"
+2,"If a population mean is 15 and a sample mean is 10, what is the value of the standard error of the mean (SEM) if the population standard deviation (σ) is 2 and the sample size (n) is 25?",MCQ,SEM = 0.8,SEM = 0.32,False,"['SEM = 0.32', 'SEM = 0.64', 'SEM = 0.8', 'SEM = 1.28']"
+3,A set of 10 exam scores has a mean of 85 and a standard deviation of 5. What percentage of the scores can be expected to fall within one standard deviation of the mean?,MCQ,68%,68%,True,"['40%', '68%', '84%', '90%']"
+4,What is the term for a set of values obtained by sampling a population at regular intervals of time?,MCQ,Sample,Time Series,False,"['Control Group', 'Trend', 'Sample', 'Time Series']"
+5,What is the most commonly used measure of central tendency?,MCQ,Mean,Mean,True,"['Median', 'Mode', 'Variance', 'Mean']"

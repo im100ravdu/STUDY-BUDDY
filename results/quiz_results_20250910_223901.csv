@@ -1,0 +1,6 @@
+question_number,question,question_type,user_answer,correct_answer,is_correct,options
+1,"A confidence interval provides a range of values within which the true population parameter is likely to lie, within a certain level of _______________.",Fill in the blank,confidence,confidence,True,[]
+2,"A bar chart is often used to visualize categorical data with numerical values, which is also known as a type of _____.",Fill in the blank,bargraph,histogram,False,[]
+3,"A regression analysis is a type of predictive statistic that aims to estimate the value of one numerical variable based on the value of another, known as the _______.",Fill in the blank,sample mean,outcome variable,False,[]
+4,"The probability of an event occurring is determined by the ratio of the number of favorable outcomes to the total number of possible outcomes, which is known as the _____.",Fill in the blank,event,probability ratio,False,[]
+5,A correlation coefficient of ______ indicates a strong linear relationship between two variables.,Fill in the blank,variables,1,False,[]
