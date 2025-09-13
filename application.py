@@ -3,6 +3,7 @@ import streamlit as st
 from dotenv import load_dotenv
 from src.utils.helpers import *
 from src.generator.question_generator import QuestionGenerator
+from src.config.exam_config import EXAM_CONFIG
 load_dotenv()
 
 def main():
@@ -21,33 +22,58 @@ def main():
         st.session_state.rerun_trigger = False
 
     st.title("Study Buddy AI")
+    st.subheader("Exam Preparation Tool")
+
+    exam = st.selectbox(
+        "Select Exam",
+        ["IIT JEE", "NEET", "SSC CGL", "UPSC"],
+        key = "exam_selection"
+    )
+
+    if exam:
+        subjects = EXAM_CONFIG[exam]["subjects"]
+        subject = st.selectbox(
+            "Select Subject",
+            subjects,
+            key="subject_selection"
+        )
+    if subjects:
+        topics = EXAM_CONFIG[exam]["topics"][subject]
+        topic = st.selectbox(
+            "Select Topic",
+            topics,
+            key = "topic_selection"
+        )
 
     st.sidebar.header("Quiz Settings")
-    question_type = st.sidebar.selectbox(
-    "Select Question Type",
-    ["Multiple Choice", "Fill in the Blank"],
-    index=0)
+    if "exam" in locals() and 'subject' in locals() and 'topics' in locals():
+        question_type = st.sidebar.selectbox(
+            "Selection Question Type",
+            EXAM_CONFIG[exam]["question_types"],
+            index=0
+        )
 
-    topic = st.sidebar.text_input("Enter the topic",placeholder="Indian history, Geo")
+        difficulty = st.sidebar.selectbox(
+            "Difficulty Level",
+            EXAM_CONFIG[exam]["difficulty_level"],
+            index=1
+        )
 
-    difficulty = st.sidebar.selectbox(
-        "Difficulty Level",
-        ["Easy","Medium","Hard"],
-        index = 1)
+        num_questions = st.sidebar.number_input("Number of questions", min_value=1, max_value=10, value = 5)
     
-    num_questions = st.sidebar.number_input("Number of questions user wants", min_value=1, max_value=10,
-                                            value=5)
-    
-    if st.sidebar.button("Generate Quiz"):
+    if st.sidebar.button("Generate Quiz") and 'exam' in locals() and 'subject' in locals() and 'topic' in locals():
         st.session_state.quiz_submitted = False
         generator = QuestionGenerator()
         success = st.session_state.quiz_manager.generate_questions(
             generator,
-            topic,question_type,difficulty,num_questions
+            exam, subject, topic, question_type, difficulty, num_questions
         )
 
         st.session_state.quiz_generated = success
         rerun()
+    else:
+        if 'exam' not in locals() or 'subject' not in locals() or 'topic' not in locals():
+            st.sidebar.warning("Please select exam, subject and topic first")
 
     if st.session_state.quiz_generated and st.session_state.quiz_manager.questions:
         st.header("Quiz")

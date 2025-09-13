@@ -12,45 +12,56 @@ class QuizeManager:
         self.user_answers = []
         self.result = []
 
-    def generate_questions(self, generator:QuestionGenerator, topic:str , question_type:str, difficulty:str, number_questions:int):
+    def generate_questions(self, generator:QuestionGenerator, exam:str, subject:str, topic:str , question_type:str, difficulty:str, number_questions:int):
         self.questions = []
         self.user_answers = []
         self.result = []
 
         try:
             for _ in range(number_questions):
-                if question_type == "Multiple Choice":
-                    question = generator.generate_mcq(topic, difficulty.lower())
+                if question_type=="Multiple Choice":
+                    question = generator.generate_mcq(exam, subject, topic, difficulty.lower())
                     
                     self.questions.append({
-                        "type":"MCQ",
-                        "question" : question.question,
-                        "options" : question.options,
-                        "correct_answer": question.correct_answer
-                    })
+                    "type": "MCQ",
+                    "exam":question.exam,
+                    "subject": question.subject,
+                    "topic": question.topic,
+                    "difficulty":question.difficulty,
+                    "question": question.question,
+                    "options": question.options,
+                    "correct_answer": question.correct_answer,
+                    "explanantion": question.explanation})
                 else:
-                    question = generator.generate_fill_blank(topic, difficulty.lower())
-
+                    question = generator.generate_fill_blank(exam, subject, topic, difficulty.lower())
                     self.questions.append({
                         "type":"Fill in the blank",
-                        "question" : question.question,
-                        "correct_answer": question.answer
+                        "exam": question.exam,
+                        "subject": question.subject,
+                        "topic":question.topic,
+                        "difficulty": question.difficulty,
+                        "question": question.question,
+                        "correct_answer": question.answer,
+                        "explanation": question.explanation
                     })
         except Exception as e:
             st.error(f"Error generating question {e}")
             return False
-        
         return True
     
     def attempt_quiz(self):
         for i,q in enumerate(self.questions):
-            st.markdown(f"**Question {i+1} : {q['question']}**")
+
+            st.markdown(f"**Question {i+1}**")
+            st.markdown(f"**EXAM:** {q['exam']} | **subject:** {q['subject']} | **Topic:** {q['topic']} | **Difficulty:** {q['difficulty']}")
+            st.markdown(f"**Question:** {q['question']}")
 
             if q["type"] == "MCQ":
                 user_answer = st.radio(f"Select an answer for question {i+1}",
                                       q["options"],
                                       key = f"mcq_{i}",
                                       index=None)  # No default selection
+                
                 if user_answer is not None:
                     if len(self.user_answers) <= i:
                         self.user_answers.extend([None] * (i - len(self.user_answers) + 1))
@@ -70,10 +81,14 @@ class QuizeManager:
         for i, (q,user_ans) in enumerate(zip(self.questions,self.user_answers)):
             result_dict = {
                 "question_number": i+1,
+                "exam": q["exam"],
+                "subject": q["subject"],
+                "topic": q["topic"],
                 "question": q["question"],
                 "question_type": q["type"],
                 "user_answer": user_ans,
                 "correct_answer": q["correct_answer"],
+                "explanation": q["explanation"],
                 "is_correct": False
             }
 
