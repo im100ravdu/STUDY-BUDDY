@@ -44,6 +44,10 @@ def main():
             topics,
             key = "topic_selection"
         )
+    st.sidebar.header("Model Provider")
+    provider = st.sidebar.selectbox("Provider",
+                                    ["groq", "openai"],
+                                    index = 0)
 
     st.sidebar.header("Quiz Settings")
     if "exam" in locals() and 'subject' in locals() and 'topics' in locals():
@@ -60,6 +64,8 @@ def main():
         )
 
         num_questions = st.sidebar.number_input("Number of questions", min_value=1, max_value=10, value = 5)
+
+
     
     if st.sidebar.button("Generate Quiz") and 'exam' in locals() and 'subject' in locals() and 'topic' in locals():
         st.session_state.quiz_submitted = False
