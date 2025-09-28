@@ -1,0 +1,167 @@
+# Docker Manifest Error Troubleshooting Guide
+# Error: "manifest for im100rav/study_buddy:latest not found: manifest unknown"
+
+## Problem Analysis
+
+The error you're encountering indicates that the Docker image `im100rav/study_buddy:latest` doesn't exist in Docker Hub or the manifest is corrupted. This typically happens when:
+
+1. The image was never pushed to Docker Hub
+2. The image was pushed but later deleted
+3. The image tag doesn't match what's in the registry
+4. There's a mismatch between the image name/tag in your deployment and what's actually available
+
+## Root Cause Analysis
+
+Looking at your setup:
+- Your deployment.yaml references: `im100rav/study_buddy:latest`
+- Your Jenkins pipeline builds with tag: `v${BUILD_NUMBER}` (e.g., v1, v2, v3)
+- Your Jenkins pipeline updates the deployment.yaml to use the versioned tag
+- But your current deployment.yaml still shows `:latest` tag
+
+## Solutions
+
+### Solution 1: Verify Image Exists in Docker Hub
+1. Go to https://hub.docker.com/r/im100rav/study_buddy/tags
+2. Check if the image exists and what tags are available
+3. If no image exists, you need to build and push it first
+
+### Solution 2: Build and Push the Image Manually
+If the image doesn't exist, follow these steps:
+
+```bash
+# 1. Build the Docker image locally
+docker build -t im100rav/study_buddy:latest .
+
+# 2. Tag it properly (replace with your actual Docker Hub username)
+docker tag im100rav/study_buddy:latest im100rav/study_buddy:latest
+
+# 3. Login to Docker Hub
+docker login
+
+# 4. Push the image
+docker push im100rav/study_buddy:latest
+```
+
+### Solution 3: Use a Specific Version Tag
+Instead of using `:latest`, use a specific version:
+
+1. Update your deployment.yaml:
+```yaml
+# Change this line:
+image: im100rav/study_buddy:latest
+# To this (use an actual version that exists):
+image: im100rav/study_buddy:v1.0.0
+```
+
+### Solution 4: Fix Your Jenkins Pipeline
+Your Jenkins pipeline has a logical issue. It builds with versioned tags but your deployment.yaml still references `:latest`. Here's the fix:
+
+1. Update your Jenkinsfile to also push the `:latest` tag:
+```groovy
+stage('Push Image to DockerHub') {
+    steps {
+        script {
+            echo 'Pushing Docker image to DockerHub...'
+            docker.withRegistry('https://registry.hub.docker.com' , "${DOCKER_HUB_CREDENTIALS_ID}") {
+                dockerImage.push("${IMAGE_TAG}")
+                dockerImage.push("latest")  // Add this line
+            }
+        }
+    }
+}
+```
+
+2. Or update your deployment.yaml to use the versioned tag that Jenkins creates.
+
+## Immediate Action Steps
+
+### Step 1: Check Current Image Status
+```bash
+# Check if the image exists in Docker Hub
+docker pull im100rav/study_buddy:latest
+```
+
+### Step 2: If Image Doesn't Exist, Build and Push
+```bash
+# Navigate to your project directory
+cd /Users/sauravprasad/Desktop/Learning/Study_Buddy
+
+# Build the image
+docker build -t im100rav/study_buddy:latest .
+
+# Login to Docker Hub (you'll need your credentials)
+docker login
+
+# Push the image
+docker push im100rav/study_buddy:latest
+```
+
+### Step 3: Verify the Push
+```bash
+# Verify the image was pushed successfully
+docker pull im100rav/study_buddy:latest
+```
+
+### Step 4: Update ArgoCD
+After pushing the image, ArgoCD should automatically detect the new image and pull it. If not:
+
+```bash
+# Force ArgoCD to sync
+argocd app sync study
+```
+
+## Prevention for Future
+
+1. **Always use specific version tags** instead of `:latest` in production
+2. **Set up proper CI/CD** that builds, tests, and pushes images before deployment
+3. **Use image pull policies** in your deployment:
+```yaml
+spec:
+  containers:
+  - name: llmops-app
+    image: im100rav/study_buddy:v1.0.0
+    imagePullPolicy: Always  # or IfNotPresent
+```
+
+## Alternative: Use a Different Registry
+
+If Docker Hub continues to have issues, consider:
+1. **GitHub Container Registry** (ghcr.io)
+2. **Amazon ECR**
+3. **Google Container Registry**
+
+## Quick Fix Commands
+
+If you want to quickly test with a local image:
+```bash
+# Build locally
+docker build -t study-buddy-local .
+
+# Update deployment.yaml to use local image
+# Change: image: im100rav/study_buddy:latest
+# To: image: study-buddy-local
+```
+
+## Verification Steps
+
+After implementing any solution:
+1. Check ArgoCD application status
+2. Verify pod status: `kubectl get pods`
+3. Check pod logs: `kubectl logs <pod-name>`
+4. Verify image pull: `kubectl describe pod <pod-name>`
+
+## Common Issues and Solutions
+
+1. **Authentication Issues**: Ensure Docker Hub credentials are correct
+2. **Network Issues**: Check if your cluster can reach Docker Hub
+3. **Image Size**: Large images may timeout during pull
+4. **Registry Rate Limits**: Docker Hub has pull rate limits for free accounts
+
+## Next Steps
+
+1. Choose one of the solutions above based on your preference
+2. Implement the fix
+3. Monitor the ArgoCD application
+4. Set up proper CI/CD to prevent this issue in the future
+
+Remember: The `:latest` tag is convenient for development but should be avoided in production environments. Always use specific version tags for production deployments.
